@@ -53,7 +53,7 @@ public class Fire : MonoBehaviour {
     {
         transform.GetChild(1).localScale = Vector3.one * (fireHealth / 100f);
 
-        float newLightValue = 1 + 20 * fireHealth / 100f;
+        float newLightValue = 1 + 5 * fireHealth / 100f;
 
         if(fireHealth <= 0)
         {

@@ -43,10 +43,18 @@ public class WaterBird : Bird {
             }
             else
             {
-                GameManager.instance.BombExplodedOverFire();
-                Destroy(gameObject);
+                GetComponent<SpriteRenderer>().enabled = false;
+                GetComponent<BoxCollider2D>().enabled = false;
+                StartCoroutine(WaterBombThrown());
             }
         }
+    }
+
+    protected IEnumerator WaterBombThrown()
+    {
+        yield return new WaitForSeconds(1);
+        GameManager.instance.BombExplodedOverFire();
+        Destroy(gameObject);
     }
 
     protected override Bomb BombOnDeath

@@ -20,6 +20,8 @@ public class PlayerController : MonoBehaviour
 
     public float lastJumpTimeStamp = 0;
 
+    public bool mouseButtonDown = false;
+
     // Update is called once per frame
     void Update()
     {
@@ -28,15 +30,18 @@ public class PlayerController : MonoBehaviour
         // left mouse button
         if(Input.GetMouseButtonDown(0))
         {
-            Vector3 point = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector3 bowPosition = transform.GetChild(0).GetChild(0).position;
-            Vector2 dir = point - bowPosition;
-            Arrow arrow = Instantiate(arrowPrefab);
-            arrow.transform.position = bowPosition;
-            arrow.direction = dir.normalized;
-            var angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            arrow.transform.rotation = Quaternion.AngleAxis(angle - 90, Vector3.forward);
-            GameManager.instance.PlayArrowShotSound();
+            ShootArrow();
+            mouseButtonDown = true;
+        }
+        if (Input.GetMouseButton(0) && !mouseButtonDown)
+        {
+            mouseButtonDown = false;
+            ShootArrow();
+        }
+        if (Input.GetMouseButtonUp(0) && !mouseButtonDown)
+        {
+            mouseButtonDown = false;
+            ShootArrow();
         }
         
         if (dist > 1.5f)
@@ -48,7 +53,13 @@ public class PlayerController : MonoBehaviour
         moveDir = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical") >= 0 ? Input.GetAxis("Vertical") : 0).normalized;
         float xTranslation = xDir * playerSpeed * Time.deltaTime;
 
-        if(xTranslation > 0)
+        if(!(Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow)
+            || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)))
+        {
+            return;
+        }
+
+        if (xTranslation > 0)
         {
             spriteRenderer.flipX = true;
         }
@@ -56,14 +67,26 @@ public class PlayerController : MonoBehaviour
         {
             spriteRenderer.flipX = false; 
         }
-
+        
         transform.Translate(xTranslation, 0f, 0f);  //makes player run
         
         if (yDir > 0 && Time.realtimeSinceStartup - lastJumpTimeStamp > 1)  //makes player jump
         {
             lastJumpTimeStamp = Time.realtimeSinceStartup;
-            Debug.Log("x: " + xTranslation * jumpStrength);
             GetComponent<Rigidbody2D>().AddForce(new Vector2(xTranslation * jumpStrength * 10, jumpStrength), ForceMode2D.Impulse);
         }
+    }
+
+    private void ShootArrow()
+    {
+        Vector3 point = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 bowPosition = transform.GetChild(0).GetChild(0).position;
+        Vector2 dir = point - bowPosition;
+        Arrow arrow = Instantiate(arrowPrefab);
+        arrow.transform.position = bowPosition;
+        arrow.direction = dir.normalized;
+        var angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        arrow.transform.rotation = Quaternion.AngleAxis(angle - 90, Vector3.forward);
+        GameManager.instance.PlayArrowShotSound();
     }
 }

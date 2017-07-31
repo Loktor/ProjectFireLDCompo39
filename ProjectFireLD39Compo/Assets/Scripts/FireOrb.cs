@@ -60,7 +60,7 @@ public class FireOrb : MonoBehaviour {
         }
         if (kindling && collision.gameObject.CompareTag("Arrow"))
         {
-            this.transform.localScale *= 0.2f;
+            this.transform.localScale *= 0.05f;
             kindling = false;
             GetComponentInChildren<Light>().intensity = 0;
             GetComponent<ParticleSystem>().Play();

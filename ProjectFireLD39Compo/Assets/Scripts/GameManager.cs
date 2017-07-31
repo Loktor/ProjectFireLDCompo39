@@ -128,16 +128,6 @@ public  class GameManager : MonoBehaviour {
         AudioSource.PlayClipAtPoint(logHitFloorSounds[Random.Range(0, logHitFloorSounds.Count)], transform.position);
     }
 
-    private void OnMouseEnter()
-    {
-        Cursor.SetCursor(null, Vector2.zero, CursorMode.ForceSoftware);
-    }
-
-    private void OnMouseExit()
-    {
-        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
-    }
-
     // Update is called once per frame
     void Update () {
         if (gameRunning)
@@ -189,11 +179,11 @@ public  class GameManager : MonoBehaviour {
             loggerSpawner.SpawnEnemy();
         }
 
-        if(gameTimeInSeconds > 5 && gameTimeInSeconds < 20)
+        if(gameTimeInSeconds > 5 && gameTimeInSeconds < 12)
         {
             infoText.text = "Shoot the red spirit and collect his essence to increase the flame";
         }
-        else if (gameTimeInSeconds > 20 && gameTimeInSeconds < 30)
+        else if (gameTimeInSeconds > 12 && gameTimeInSeconds < 20)
         {
             infoText.text = "Shoot the blue spirit before he reaches the flame";
         }
@@ -287,7 +277,7 @@ public  class GameManager : MonoBehaviour {
             }
             return;
         }
-        else if(gameTimeInSeconds > 30 && gameTimeInSeconds < 60)
+        else if(gameTimeInSeconds > 20 && gameTimeInSeconds < 60)
         {
             infoText.gameObject.SetActive(false);
         }
@@ -299,49 +289,53 @@ public  class GameManager : MonoBehaviour {
             uberWaveSpawned = false;
         }
 
-        if (gameTimeInSeconds > 20 && initialWaterBirdSpawnedCount < 1)
+        if (gameTimeInSeconds > 12 && initialWaterBirdSpawnedCount < 1)
         {
             initialWaterBirdSpawnedCount++;
             waterSpawner.SpawnEnemy();
         }
 
-        if (gameTimeInSeconds > 30 && initialWaterBirdSpawnedCount < 2)
+        if (gameTimeInSeconds > 20 && initialWaterBirdSpawnedCount < 2)
         {
             initialWaterBirdSpawnedCount++;
-            loggerSpawner.moveSpeedX = 6;
+            loggerSpawner.moveSpeedX = 7;
+            loggerSpawner.spawningProbabilityPercentage = 1.1f;
             loggerSpawner.SpawnEnemy();
             waterSpawner.SpawnEnemy();
         }
 
-        if (gameTimeInSeconds > 40)
+        if (gameTimeInSeconds > 20)
         {
             loggerSpawner.active = true;
         }
-        if (gameTimeInSeconds > 60)
+        if (gameTimeInSeconds > 35)
         {
             waterSpawner.active = true;
         }
 
         if (gameTimeInSeconds > 200)
         {
-            loggerSpawner.moveSpeedX = 11;
+            loggerSpawner.moveSpeedX = 12;
         }
 
         if (gameTimeInSeconds > 400)
         {
-            waterSpawner.moveSpeedX = 11;
+            waterSpawner.moveSpeedX = 13;
         }
         else if (gameTimeInSeconds > 240)
         {
-            waterSpawner.moveSpeedX = 9;
+            waterSpawner.spawningProbabilityPercentage = 1.5f;
+            waterSpawner.moveSpeedX = 10;
         }
         else if (gameTimeInSeconds > 180)
         {
-            waterSpawner.moveSpeedX = 8;
+            waterSpawner.moveSpeedX = 9;
         }
         else if (gameTimeInSeconds > 100)
         {
-            waterSpawner.moveSpeedX = 7;
+            waterSpawner.spawningProbabilityPercentage = 1.3f;
+            loggerSpawner.spawningProbabilityPercentage = 1.3f;
+            waterSpawner.moveSpeedX = 8;
         }
 	}
 
