@@ -299,7 +299,7 @@ public  class GameManager : MonoBehaviour {
         {
             initialWaterBirdSpawnedCount++;
             loggerSpawner.moveSpeedX = 7;
-            loggerSpawner.spawningProbabilityPercentage = 1.1f;
+            loggerSpawner.spawningProbabilityPercentage = 1f;
             loggerSpawner.SpawnEnemy();
             waterSpawner.SpawnEnemy();
         }
@@ -334,7 +334,7 @@ public  class GameManager : MonoBehaviour {
         else if (gameTimeInSeconds > 100)
         {
             waterSpawner.spawningProbabilityPercentage = 1.3f;
-            loggerSpawner.spawningProbabilityPercentage = 1.3f;
+            loggerSpawner.spawningProbabilityPercentage = 1.1f;
             waterSpawner.moveSpeedX = 8;
         }
 	}
@@ -410,9 +410,9 @@ public  class GameManager : MonoBehaviour {
         }
     }
 
-    public void LogCollected()
+    public void LogCollected(int strengh = 5)
     {
-        fire.IncreaseSize(5);
+        fire.IncreaseSize(strengh);
         PlayFireStartingSound();
     }
 
