@@ -35,8 +35,16 @@ public abstract class Bird : MonoBehaviour {
             {
                 BirdDied();
             }
-            Destroy(collision.gameObject);
+            if(ShouldDestroyArrowOnHit())
+            {
+                Destroy(collision.gameObject);
+            }
         }
+    }
+
+    protected virtual bool ShouldDestroyArrowOnHit()
+    {
+        return true;
     }
 
     protected virtual void HitByBullet()
@@ -49,8 +57,9 @@ public abstract class Bird : MonoBehaviour {
         return hp > 0;
     }
 
-    protected virtual void BirdDied()
+    public virtual void BirdDied()
     {
+        hp = 0;
         if (BombOnDeath)
         {
             Bomb bomb = Instantiate(BombOnDeath, this.transform.position, Quaternion.identity);

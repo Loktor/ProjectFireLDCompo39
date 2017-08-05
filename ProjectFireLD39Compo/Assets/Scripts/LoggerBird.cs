@@ -7,7 +7,7 @@ public class LoggerBird : Bird {
     public Bomb loggerBomb;
     public Log logPrefab; 
 
-    protected override void BirdDied()
+    public override void BirdDied()
     {
         base.BirdDied();
 

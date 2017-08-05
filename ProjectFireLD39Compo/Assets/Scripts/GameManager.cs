@@ -13,6 +13,7 @@ public  class GameManager : MonoBehaviour {
     private bool gameRunning = false;
     public LoggerBirdSpawner loggerSpawner;
     public WaterBirdSpawner waterSpawner;
+    public GreenGoblinSpawner greenGoblinSpawner;
     public Bomb winningBombsPrefab;
     public Text titleText;
     public Text infoText;
@@ -187,12 +188,21 @@ public  class GameManager : MonoBehaviour {
         {
             infoText.text = "Shoot the blue spirit before he reaches the flame";
         }
-        else if (gameTimeInSeconds > 90 && gameTimeInSeconds < 100)
+        else if (gameTimeInSeconds > 70 && gameTimeInSeconds < 80)
         {
             InitUberWave();
-            if (gameTimeInSeconds > 93)
+            if (gameTimeInSeconds > 73)
             {
                 SpawnUberWave(6, loggerSpawner, "a Wave!!!");
+            }
+            return;
+        }
+        else if (gameTimeInSeconds > 100 && gameTimeInSeconds < 110)
+        {
+            InitUberWave();
+            if (gameTimeInSeconds > 103)
+            {
+                SpawnUberWave(12, waterSpawner);
             }
             return;
         }
@@ -201,16 +211,16 @@ public  class GameManager : MonoBehaviour {
             InitUberWave();
             if (gameTimeInSeconds > 123)
             {
-                SpawnUberWave(12, waterSpawner);
+                SpawnUberWave(40, greenGoblinSpawner, "GREEN GOOOOOOBLIN ATTACK!!!! (they slow your arrows)");
             }
             return;
         }
-        else if (gameTimeInSeconds > 160 && gameTimeInSeconds < 170)
+        else if (gameTimeInSeconds > 160 && gameTimeInSeconds < 164)
         {
             InitUberWave();
-            if (gameTimeInSeconds > 123)
+            if (gameTimeInSeconds > 163)
             {
-                SpawnUberWave(20, waterSpawner);
+                SpawnUberWave(10, waterSpawner, "GREEN GOOOOOOBLIN ATTACK!!!! (they slow your arrows)");
             }
             return;
         }
@@ -283,10 +293,21 @@ public  class GameManager : MonoBehaviour {
         }
         else if (gameTimeInSeconds > 60)
         {
-            loggerSpawner.active = true;
-            waterSpawner.active = true;
             infoText.gameObject.SetActive(false);
             uberWaveSpawned = false;
+        }
+        
+        if (gameTimeInSeconds > 20)
+        {
+            loggerSpawner.active = true;
+        }
+        if (gameTimeInSeconds > 35)
+        {
+            waterSpawner.active = true;
+        }
+        if (gameTimeInSeconds > 130)
+        {
+            greenGoblinSpawner.active = true;
         }
 
         if (gameTimeInSeconds > 12 && initialWaterBirdSpawnedCount < 1)
@@ -304,32 +325,23 @@ public  class GameManager : MonoBehaviour {
             waterSpawner.SpawnEnemy();
         }
 
-        if (gameTimeInSeconds > 20)
-        {
-            loggerSpawner.active = true;
-        }
-        if (gameTimeInSeconds > 35)
-        {
-            waterSpawner.active = true;
-        }
-
         if (gameTimeInSeconds > 200)
         {
-            loggerSpawner.moveSpeedX = 12;
+            loggerSpawner.moveSpeedX = 11;
         }
 
         if (gameTimeInSeconds > 400)
         {
-            waterSpawner.moveSpeedX = 13;
+            waterSpawner.moveSpeedX = 12;
         }
         else if (gameTimeInSeconds > 240)
         {
             waterSpawner.spawningProbabilityPercentage = 1.5f;
-            waterSpawner.moveSpeedX = 10;
+            waterSpawner.moveSpeedX = 9;
         }
         else if (gameTimeInSeconds > 180)
         {
-            waterSpawner.moveSpeedX = 9;
+            waterSpawner.moveSpeedX = 8;
         }
         else if (gameTimeInSeconds > 100)
         {
@@ -343,6 +355,7 @@ public  class GameManager : MonoBehaviour {
     {
         loggerSpawner.active = false;
         waterSpawner.active = false;
+        greenGoblinSpawner.active = false;
         infoText.gameObject.SetActive(true);
         infoText.text = "Something is approaching!!!";
         return;
@@ -356,6 +369,7 @@ public  class GameManager : MonoBehaviour {
         {
             loggerSpawner.active = false;
             waterSpawner.active = false;
+            greenGoblinSpawner.active = false;
             for (int i = 0; i < amount; i++)
             {
                 spawner.SpawnEnemy();
