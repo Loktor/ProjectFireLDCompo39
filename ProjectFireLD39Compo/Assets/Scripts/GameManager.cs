@@ -18,6 +18,7 @@ public  class GameManager : MonoBehaviour {
     public Text titleText;
     public Text infoText;
     public Text gameDurationText;
+    public Text skipTutorialHint;
     public AudioClip growingOrb;
     public AudioClip breakingOrb;
     public AudioClip fireStarting;
@@ -28,13 +29,16 @@ public  class GameManager : MonoBehaviour {
     public List<AudioClip> loggerEnemyDeathSounds = new List<AudioClip>();
     public List<AudioClip> logHitFloorSounds = new List<AudioClip>();
     private bool gameOver = false;
-    private float gameTimeInSeconds = -1;
-    private float gameStartTimeInSeconds = -1;
+    private int gameTimeInSeconds = -1;
+    private int gameStartTimeInSeconds = -1;
     private bool initialLoggerSpawned = false;
     private int initialWaterBirdSpawnedCount = 0;
     private bool uberWaveSpawned = false;
     private bool gameWon = false;
     private int oldGameTime = 0;
+    private Direction oldDirection;
+    public static int skipSeconds = 0;
+    private static int amountOfPlays = 0;
 
     public bool GameRunning
     {
@@ -62,11 +66,20 @@ public  class GameManager : MonoBehaviour {
         gameWon = false;
         uberWaveSpawned = false;
         gameOver = false;
+        gameRunning = false;
         gameTimeInSeconds = -1;
         gameStartTimeInSeconds = -1;
         initialLoggerSpawned = false;
         initialWaterBirdSpawnedCount = 0;
-        StartCoroutine(StartOrbVisibility());
+        if(skipSeconds > 0)
+        {
+            Destroy(fireOrb.gameObject);
+            StartGame();
+        }
+        else
+        {
+            StartCoroutine(StartOrbVisibility());
+        }
     }
 
     private IEnumerator StartOrbVisibility()
@@ -80,7 +93,7 @@ public  class GameManager : MonoBehaviour {
         yield return new WaitForSeconds(1);
         PlayFireOrbSound();
         fireOrb.GetComponentInChildren<Light>().intensity = 20;
-        infoText.text = "Collect the orb(WASD to move)";
+        infoText.text = "Collect the orb\n(WASD/Arrow keys to move)";
         fireOrb.collectionAllowed = true;
     }
 
@@ -130,20 +143,39 @@ public  class GameManager : MonoBehaviour {
     }
 
     // Update is called once per frame
-    void Update () {
+    void Update ()
+    {
+        int gameTimeInSecondsBefore = gameTimeInSeconds;
         if (gameRunning)
         {
-            gameTimeInSeconds = Time.realtimeSinceStartup - gameStartTimeInSeconds;
-            gameDurationText.text = "Game Duration: " + (int)gameTimeInSeconds + "s";
+            gameTimeInSeconds = (int)Time.realtimeSinceStartup - gameStartTimeInSeconds + skipSeconds;
+            gameDurationText.text = "Game Time: " + gameTimeInSeconds + "s";
         }
-        if (gameOver && Input.GetKeyDown("space"))
+        if(Input.GetKeyDown(KeyCode.X) && gameTimeInSeconds < 60 && gameRunning)
         {
+            skipSeconds = 60 - gameTimeInSeconds;
+            skipTutorialHint.gameObject.SetActive(false);
+        }
+
+        if (gameOver && Input.GetKeyDown(KeyCode.Space))
+        {
+            skipSeconds = 60;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+        else if (gameOver && Input.GetKeyDown(KeyCode.Return))
+        {
+            skipSeconds = 0;
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
         if (fire.fireHealth <= 0)
         {
             gameOver = true;
             GameOver();
+            return;
+        }
+        if(gameTimeInSecondsBefore - gameTimeInSeconds == 0)
+        {
+            // game time in seconds didn't change -> no changes happen currently
             return;
         }
 
@@ -155,8 +187,14 @@ public  class GameManager : MonoBehaviour {
             {
                 GameWon();
             }
-            if (Input.GetKeyDown("space"))
+            if (Input.GetKeyDown(KeyCode.Space))
             {
+                skipSeconds = 60;
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            }
+            else if (Input.GetKeyDown(KeyCode.Return))
+            {
+                skipSeconds = 0;
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
 
@@ -177,7 +215,7 @@ public  class GameManager : MonoBehaviour {
         {
             initialLoggerSpawned = true;
             loggerSpawner.moveSpeedX = 2;
-            loggerSpawner.SpawnEnemy();
+            loggerSpawner.SpawnEnemy(DirectionHelpers.RandomDirection);
         }
 
         if(gameTimeInSeconds > 5 && gameTimeInSeconds < 12)
@@ -191,88 +229,130 @@ public  class GameManager : MonoBehaviour {
         else if (gameTimeInSeconds > 70 && gameTimeInSeconds < 80)
         {
             InitUberWave();
-            if (gameTimeInSeconds > 73)
+            if (gameTimeInSeconds == 73)
             {
-                SpawnUberWave(6, loggerSpawner, "a Wave!!!");
+                SpawnUberWave(3, loggerSpawner, Direction.Left, -5, 5, "a Wave!!!");
+            }
+            if (gameTimeInSeconds == 74)
+            {
+                SpawnUberWave(3, loggerSpawner, Direction.Right, -5, 5, "a Wave!!!");
             }
             return;
         }
         else if (gameTimeInSeconds > 100 && gameTimeInSeconds < 110)
         {
             InitUberWave();
-            if (gameTimeInSeconds > 103)
+            if (gameTimeInSeconds == 103)
             {
-                SpawnUberWave(12, waterSpawner);
+                SpawnUberWave(4, waterSpawner, Direction.Left);
+            }
+            if (gameTimeInSeconds == 104)
+            {
+                SpawnUberWave(4, waterSpawner, Direction.Right);
+            }
+            if (gameTimeInSeconds == 105)
+            {
+                SpawnUberWave(2, waterSpawner, DirectionHelpers.RandomDirection);
+                SpawnUberWave(2, waterSpawner, DirectionHelpers.RandomDirection);
             }
             return;
         }
         else if (gameTimeInSeconds > 120 && gameTimeInSeconds < 130)
         {
             InitUberWave();
-            if (gameTimeInSeconds > 123)
+            if (gameTimeInSeconds == 123)
             {
-                SpawnUberWave(40, greenGoblinSpawner, "GREEN GOOOOOOBLIN ATTACK!!!! (they slow your arrows)");
+                SpawnUberWave(20, greenGoblinSpawner, Direction.Left, -10, 5, "GREEN GOOOOOOBLIN ATTACK!!!!\n(they slow your arrows)");
+                SpawnUberWave(20, greenGoblinSpawner, Direction.Right, -10, 5, "GREEN GOOOOOOBLIN ATTACK!!!!\n(they slow your arrows)");
             }
             return;
         }
-        else if (gameTimeInSeconds > 160 && gameTimeInSeconds < 164)
+        else if (gameTimeInSeconds > 160 && gameTimeInSeconds < 168)
         {
             InitUberWave();
-            if (gameTimeInSeconds > 163)
+            if (gameTimeInSeconds == 163)
             {
-                SpawnUberWave(10, waterSpawner, "GREEN GOOOOOOBLIN ATTACK!!!! (they slow your arrows)");
+                SpawnUberWave(10, waterSpawner);
             }
             return;
         }
         else if (gameTimeInSeconds > 200 && gameTimeInSeconds < 210)
         {
             InitUberWave();
-            if (gameTimeInSeconds > 203)
+            if (gameTimeInSeconds == 203)
             {
-                SpawnUberWave(20, waterSpawner);
+                SpawnUberWave(8, waterSpawner, Direction.Left);
+                SpawnUberWave(8, waterSpawner, Direction.Right);
+            }
+            if (gameTimeInSeconds == 204)
+            {
+                SpawnUberWave(2, greenGoblinSpawner, Direction.Left);
+                SpawnUberWave(2, greenGoblinSpawner, Direction.Right);
             }
             return;
         }
         else if (gameTimeInSeconds > 280 && gameTimeInSeconds < 290)
         {
             InitUberWave();
-            if (gameTimeInSeconds > 283)
+            if (gameTimeInSeconds == 283)
             {
-                SpawnUberWave(20, waterSpawner);
+                oldDirection = DirectionHelpers.RandomDirection;
+                SpawnUberWave(6, waterSpawner, oldDirection);
+            }
+            if (gameTimeInSeconds == 284)
+            {
+                SpawnUberWave(6, waterSpawner, oldDirection.Opposite());
+            }
+            if (gameTimeInSeconds == 285)
+            {
+                oldDirection = DirectionHelpers.RandomDirection;
+                SpawnUberWave(6, waterSpawner, oldDirection);
+            }
+            if (gameTimeInSeconds == 286)
+            {
+                SpawnUberWave(6, waterSpawner, oldDirection.Opposite());
             }
             return;
         }
         else if (gameTimeInSeconds > 320 && gameTimeInSeconds < 330)
         {
             InitUberWave();
-            if (gameTimeInSeconds > 323)
+            if (gameTimeInSeconds == 323)
             {
-                SpawnUberWave(20, waterSpawner);
+                SpawnUberWave(10, waterSpawner, Direction.Left);
+                SpawnUberWave(10, waterSpawner, Direction.Right);
+            }
+            if (gameTimeInSeconds == 325)
+            {
+                SpawnUberWave(3, greenGoblinSpawner, Direction.Left);
+                SpawnUberWave(3, greenGoblinSpawner, Direction.Right);
             }
             return;
         }
         else if (gameTimeInSeconds > 350 && gameTimeInSeconds < 360)
         {
             InitUberWave();
-            if (gameTimeInSeconds > 353)
+            if (gameTimeInSeconds == 353)
             {
-                SpawnUberWave(20, loggerSpawner);
+                SpawnUberWave(10, loggerSpawner, Direction.Left);
+                SpawnUberWave(10, loggerSpawner, Direction.Right);
             }
             return;
         }
         else if (gameTimeInSeconds > 420 && gameTimeInSeconds < 430)
         {
             InitUberWave();
-            if (gameTimeInSeconds > 423)
+            if (gameTimeInSeconds == 423)
             {
-                SpawnUberWave(10, waterSpawner);
+                SpawnUberWave(5, waterSpawner, Direction.Left, -7, 7);
+                SpawnUberWave(5, waterSpawner, Direction.Right);
             }
             return;
         }
         else if (gameTimeInSeconds > 470 && gameTimeInSeconds < 478)
         {
             InitUberWave();
-            if (gameTimeInSeconds > 473)
+            if (gameTimeInSeconds == 473)
             {
                 SpawnUberWave(10, waterSpawner);
             }
@@ -281,9 +361,19 @@ public  class GameManager : MonoBehaviour {
         else if (gameTimeInSeconds > 490 && gameTimeInSeconds < 500)
         {
             InitUberWave();
-            if (gameTimeInSeconds > 493)
+            if (gameTimeInSeconds == 493)
             {
-                SpawnUberWave(20, waterSpawner);
+                oldDirection = DirectionHelpers.RandomDirection;
+                SpawnUberWave(10, waterSpawner, oldDirection, -7, 7);
+            }
+            if (gameTimeInSeconds == 494)
+            {
+                SpawnUberWave(10, waterSpawner, oldDirection.Opposite(), -7, 7);
+            }
+            if (gameTimeInSeconds == 495)
+            {
+                SpawnUberWave(5, waterSpawner, Direction.Left);
+                SpawnUberWave(5, waterSpawner, Direction.Right);
             }
             return;
         }
@@ -293,8 +383,8 @@ public  class GameManager : MonoBehaviour {
         }
         else if (gameTimeInSeconds > 60)
         {
+            skipTutorialHint.gameObject.SetActive(false);
             infoText.gameObject.SetActive(false);
-            uberWaveSpawned = false;
         }
         
         if (gameTimeInSeconds > 20)
@@ -313,7 +403,7 @@ public  class GameManager : MonoBehaviour {
         if (gameTimeInSeconds > 12 && initialWaterBirdSpawnedCount < 1)
         {
             initialWaterBirdSpawnedCount++;
-            waterSpawner.SpawnEnemy();
+            waterSpawner.SpawnEnemy(DirectionHelpers.RandomDirection);
         }
 
         if (gameTimeInSeconds > 20 && initialWaterBirdSpawnedCount < 2)
@@ -321,8 +411,8 @@ public  class GameManager : MonoBehaviour {
             initialWaterBirdSpawnedCount++;
             loggerSpawner.moveSpeedX = 7;
             loggerSpawner.spawningProbabilityPercentage = 1f;
-            loggerSpawner.SpawnEnemy();
-            waterSpawner.SpawnEnemy();
+            loggerSpawner.SpawnEnemy(DirectionHelpers.RandomDirection);
+            waterSpawner.SpawnEnemy(DirectionHelpers.RandomDirection);
         }
 
         if (gameTimeInSeconds > 200)
@@ -356,50 +446,52 @@ public  class GameManager : MonoBehaviour {
         loggerSpawner.active = false;
         waterSpawner.active = false;
         greenGoblinSpawner.active = false;
-        infoText.gameObject.SetActive(true);
-        infoText.text = "Something is approaching!!!";
+        if(!infoText.gameObject.active)
+        {
+            infoText.gameObject.SetActive(true);
+            infoText.text = "Something is approaching!!!";
+        }
         return;
     }
 
-    private void SpawnUberWave(int amount, EnemySpawner spawner, string text = "Uber WAVE!!!")
+    private void SpawnUberWave(int amount, EnemySpawner spawner, Direction? direction = null, float rangeMin = -5, float rangeMax = 5, string text = "Uber WAVE!!!")
     {
         infoText.gameObject.SetActive(true);
         infoText.text = text;
-        if (!uberWaveSpawned)
+        loggerSpawner.active = false;
+        waterSpawner.active = false;
+        greenGoblinSpawner.active = false;
+        float rangeArea = rangeMax - rangeMin;
+        for (int i = 0; i < amount; i++)
         {
-            loggerSpawner.active = false;
-            waterSpawner.active = false;
-            greenGoblinSpawner.active = false;
-            for (int i = 0; i < amount; i++)
-            {
-                spawner.SpawnEnemy();
-            }
-            uberWaveSpawned = true;
+            spawner.SpawnEnemy(direction.HasValue ? direction.Value : DirectionHelpers.RandomDirection, (int)(rangeMin + (rangeArea / amount * i)));
         }
         return;
     }
 
     private void GameWon()
     {
+        amountOfPlays++;
         gameWon = true;
         titleText.gameObject.SetActive(true);
         infoText.gameObject.SetActive(true);
         titleText.text = "You kept the flame alive, Congratulations";
-        infoText.text = "Press Space to restart";
+        infoText.text = "Press Space to restart\n(enter to completely restart with the tutorial)";
     }
 
     private void GameOver()
     {
+        amountOfPlays++;
         gameRunning = false;
         titleText.gameObject.SetActive(true);
         infoText.gameObject.SetActive(true);
         titleText.text = "Game Over";
-        infoText.text = "Press Space to restart";
+        infoText.text = "Press Space to restart\n(enter to completely restart with the tutorial)";
     }
 
     public void OrbInPosition()
     {
-        infoText.text = "Shoot the orb to rekindle the last flame (left mouse button)";
+        infoText.text = "Shoot the orb to rekindle the last flame\n(left mouse button)";
     }
 
     public void StartGame()
@@ -409,8 +501,12 @@ public  class GameManager : MonoBehaviour {
         infoText.text = "Keep the flame alive!";
         fire.IncreaseSize(100);
         gameRunning = true;
-        gameStartTimeInSeconds = Time.realtimeSinceStartup;
+        gameStartTimeInSeconds = (int)Time.realtimeSinceStartup;
         PlayFireStartingSound();
+        if(amountOfPlays > 0)
+        {
+            skipTutorialHint.gameObject.SetActive(true);
+        }
     }
 
     public void PlayWinnerBombs()

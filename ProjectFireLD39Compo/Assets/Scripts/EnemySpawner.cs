@@ -16,7 +16,7 @@ public abstract class EnemySpawner : MonoBehaviour {
 	void Update () {
 		if(active && Random.Range(0f, 100f) < spawningProbabilityPercentage)
         {
-            SpawnEnemy();
+            SpawnEnemy(DirectionHelpers.RandomDirection);
         }
 	}
 
@@ -38,5 +38,5 @@ public abstract class EnemySpawner : MonoBehaviour {
         }
     }
 
-    public abstract void SpawnEnemy();
+    public abstract void SpawnEnemy(Direction direction, int? yPos = null);
 }

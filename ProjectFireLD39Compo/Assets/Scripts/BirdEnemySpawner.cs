@@ -5,18 +5,20 @@ using UnityEngine;
 public abstract class BirdEnemySpawner : EnemySpawner {
     public float moveSpeedX = 5;
 
-
-    public override void SpawnEnemy()
+    public override void SpawnEnemy(Direction direction, int? yPos = null)
     {
-        bool directionLeft = false;
-
-        directionLeft = Random.Range(0, 2) == 0;
-
-        Vector3 position = directionLeft ? TopRightCornerOfScreen : TopLeftCornerOfScreen;
-        position.y -= Random.Range(2, 13);
+        Vector3 position = direction == Direction.Left ? TopRightCornerOfScreen : TopLeftCornerOfScreen;
+        if(yPos.HasValue)
+        {
+            position.y = yPos.Value;
+        }
+        else
+        {
+            position.y = Random.Range(-5, 5);
+        }
         Bird bird = Instantiate(BirdPrefab, position, Quaternion.identity);
-        bird.moveSpeedX = directionLeft ? -moveSpeedX : moveSpeedX;
-        bird.GetComponent<SpriteRenderer>().flipX = directionLeft;
+        bird.moveSpeedX = direction == Direction.Left ? -moveSpeedX : moveSpeedX;
+        bird.GetComponent<SpriteRenderer>().flipX = direction == Direction.Left;
     }
     
     public abstract Bird BirdPrefab
